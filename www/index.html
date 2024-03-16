@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+        <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *" />
+
+
+        <link rel="stylesheet" type="text/css" href="css/materialize.css" />
+        <link rel="stylesheet" type="text/css" href="css/materialize.min.css" />
+
+        <script type="text/javascript" src="js/materialize.js"></script>
+        <script type="text/javascript" src="js/materialize.min.js"></script>
+        <script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>
+
+        <script type="text/javascript" >
+            /* global app */
+
+            app.initialize();
+            var db = window.openDatabase("Database", "1.0", "produtos", 2000000);
+            db.transaction(createDB, errorDB, successDB);
+            document.addEventListener("deviceready", onDeviceReady, false);
+
+            function onDeviceReady() {
+                db.transaction(createDB, errorDB, successDB);
+            }
+
+            function errorDB(err) {
+                alert("Erro: " + err);
+            }
+            function successDB() {}
+
+            function createDB(tx) {
+                tx.executeSql('CREATE TABLE IF NOT EXISTS produtos (id INTEGER PRIMARY KEY, nome VARCHAR(500), quantidade NUM(11), valor NUM(11) )');
+            }
+
+            function produtoInsert() {
+                db.transaction(produtoInsertDb, errorDB, successDB);
+
+            }
+            function produtoInsertDb(tx) {
+                var nome = $("#prodNome").val();
+                var quantidade = $("#prodQuantidade").val();
+                var valor = $("#prodValor").val();
+                tx.executeSql('INSERT INTO produtos (nome, quantidade,valor) VALUES ( "' + nome + '", ' + quantidade + ', ' + valor + ')');
+                produtoView();
+            }
+
+            function produtoView() {
+                db.transaction(produtoViewDb, errorDB, successDB);
+            }
+            function produtoViewDb(tx) {
+                tx.executeSql('SELECT * FROM produtos', [], produtoViewData, errorDB);
+            }
+            function produtoViewData(tx, results) {
+                $("#produtoLista").empty();
+                var name;
+                var len = results.rows.length;
+                for (var i = 0; i < len; i++) {
+
+                    name = "'" + results.rows.item(i).nome + "'";
+                    $("#produtoLista").append("<tr class='prodItemLista' id='prodItemLista" + results.rows.item(i).id + "'>" +
+                            "<td class='prodNome'><h4 id='prodNomeList" + i + "' value='" + results.rows.item(i).nome + "'>" + results.rows.item(i).nome + "</h4></td>" +
+                            "<td class='prodQuantidade'><h4 id='prodQuantidadeList" + i + "' value='" + results.rows.item(i).quantidade + "'>" + results.rows.item(i).quantidade + "</h4></td>" +
+                            "<td class='prodQuantidade'><h4 id='prodValorList" + i + "' value='" + results.rows.item(i).valor + "'>" + results.rows.item(i).valor + "</h4></td>" +
+                            "<td><input style='width: 110px;' type='number' id='qtde" + i + "' value='' ></td>" +
+                            '<td><button type="button" id="adicionar1" onclick="addCarrinho(' + name + ',' + results.rows.item(i).valor + ',' + results.rows.item(i).id + ',' + (i + 1) + '); location.reload();" >Adicionar ao Carrinho</button></td> '
+                            );
+                }
+            }
+            function addCarrinho(produto, valor, id, posicao) {
+                for (var i = 0; i < id; i++) {
+                    var qtd = document.getElementById("qtde" + i).value;
+                }
+
+                localStorage.setItem("produto" + posicao, produto);
+                localStorage.setItem("id" + posicao, id);
+                localStorage.setItem("qtd" + posicao, qtd);
+                valor = valor * qtd;
+                localStorage.setItem("valor" + posicao, valor);
+                alert("Produto adicionado ao carrinho!");
+            }
+        </script>
+        <title>Loja</title>
+    </head>
+    <body>
+        <div class="valign-wrapper yellow darken-4 white-text">
+            <h5	class="titulo">EcomTec</h5>
+            <div>
+                <i class="material-icons waves-effect waves-light waves-circle">more_vert</i>
+            </div>
+        </div>
+        <ul class="tabs	yellow darken-4">
+            <li	class="tab">
+                <a href="#cadastrar"
+                   class="white-text waves-effect waves-light">
+                    Cadastrar
+                </a>
+            </li>
+            <li	class="tab">
+                <a href="#lista"
+                   class="white-text waves-effect waves-light">
+                    Lista de produtos
+                </a>
+            </li>
+        </ul>
+        <div class="row" id="cadastrar">
+            <form class="col s12">
+                <div class="row">
+                    <div class="input-field col s6">                    
+                        <label for="first_name">Nome do Produtos</label>
+                        <input type="text" class="validate" id="prodNome" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s6">
+
+                        <label for="first_name">Quantidade</label>
+                        <input type="text" class="validate" id="prodQuantidade" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s6">
+                        <label for="first_name">Valor </label>
+                        <input type="text" class="validate" id="prodValor" required>
+                    </div>                       
+                </div>                       
+                <input type="button" class="btn btn-lg btn-primary form-control" value="Inserir" onclick="produtoInsert()">
+            </form>
+        </div>
+
+        <div id="lista" class="section">
+            <div class="collection">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                </tr>
+                            </thead>
+                            <tbody id ="produtoLista">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            produtoView();
+        </script>
+        <br><br>
+    <center>
+        <h3>Carrinho</h3>
+        <div id="itens"> </div>
+        <div>Total: <span id="total"></span> </div>
+
+        <script>
+            var total = 0; // variável que retorna o total dos produtos que estão na LocalStorage.
+            var i = 0;     // variável que irá percorrer as posições
+            var valor = 0; // variável que irá receber o preço do produto convertido em Float.
+
+            for (i = 1; i <= 99; i++) // verifica até 99 produtos registrados na localStorage
+            {
+                var prod = localStorage.getItem("produto" + i + ""); // verifica se há recheio nesta posição. 
+                if (prod != null) {
+                    // exibe os dados da lista dentro da div itens
+                    document.getElementById("itens").innerHTML += localStorage.getItem("qtd" + i) + " x ";
+                    document.getElementById("itens").innerHTML += localStorage.getItem("produto" + i);
+                    document.getElementById("itens").innerHTML += " ";
+                    document.getElementById("itens").innerHTML += "R$: " + localStorage.getItem("valor" + i) + "<hr>";
+
+                    // calcula o total dos recheios
+                    valor = parseFloat(localStorage.getItem("valor" + i)); // valor convertido com o parseFloat()
+                    total = (total + valor); // arredonda para 2 casas decimais com o .toFixed(2)
+                }
+            }
+            // exibe o total dos recheios
+            document.getElementById("total").innerHTML = total.toFixed(2);
+
+            function atualizar() {
+                db.transaction(editar, errorDB, successDB);
+            }
+
+            function editar(tx) {
+
+                for (i = 1; i <= 99; i++) {
+                    var qtde = localStorage.getItem("qtd" + i);
+                    var id = localStorage.getItem("id" + i);
+                    tx.executeSql('update produtos set quantidade = quantidade-' + qtde + ' where id=' + id + ' ');
+                }
+
+                produtoView();
+                localStorage.clear();
+            }
+        </script>
+
+        <button type="button" onclick="  localStorage.clear();
+                location.reload();"> Limpar carrinho </button>
+        <button type="button" onclick=" atualizar(); location.reload();"> Efetuar Compra </button>
+    </center>
+    <br>
+</body>
+</html>
